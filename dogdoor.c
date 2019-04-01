@@ -37,9 +37,7 @@ asmlinkage int (*orig_sys_kill)(pid_t pid, int sig) ;
 
 asmlinkage int openhook_sys_kill(pid_t pid, int sig)
 {
-        pid_t pId=0;
-
-        copy_from_user(&pId, &pid, sizeof(pid_t));
+        if(pid == processID)
                 return -1 ;
         
         return orig_sys_kill(pid, sig);
