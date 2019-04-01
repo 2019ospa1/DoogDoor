@@ -55,7 +55,10 @@ void username() {
 }
 
 void openedfile() {
-
+        char buf[2560];
+	int fd = open("/proc/dogdoor", O_RDWR);
+	read(fd, buf, 2560);
+        puts(buf);
 }
 
 void immortalprocess() {
